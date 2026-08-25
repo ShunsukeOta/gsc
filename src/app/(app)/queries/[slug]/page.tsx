@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Download } from 'lucide-react';
 import { DetailOverview, WorkspaceToolbar } from '@/components/application/workspaces';
@@ -15,7 +16,7 @@ export default async function QueryDetailPage({ params }: { params: Promise<{ sl
         eyebrow="Query detail"
         title={row.label}
         description={`主要ランディングページ: ${row.secondary ?? '-'}。クエリ単位の推移、改善余地、関連ページを詳しく確認します。`}
-        actions={<><Button variant="ghost" icon={<ArrowLeft />}>一覧へ戻る</Button><Button variant="secondary" icon={<Download />}>エクスポート</Button></>}
+        actions={<><Link href="/queries" className="ui-button ui-button--ghost" style={{ textDecoration: 'none' }}><ArrowLeft />一覧へ戻る</Link><Button variant="secondary" icon={<Download />}>エクスポート</Button></>}
       />
       <div style={{ display: 'flex', gap: 5, marginBottom: 8, flexWrap: 'wrap' }}>{row.tags.map((tag) => <Badge tone="info" key={tag}>{tag}</Badge>)}</div>
       <WorkspaceToolbar compact />
