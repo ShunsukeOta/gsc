@@ -1,17 +1,15 @@
-import { Settings } from 'lucide-react';
-import { SettingsWorkspace } from '@/components/application/workspaces';
-import { Button, PageHead } from '@/components/ui';
+import { LiveSettingsWorkspace } from '@/components/application/live-workspaces';
+import { PageHead } from '@/components/ui';
 
 export default function SettingsPage() {
   return (
     <>
       <PageHead
-        eyebrow="Preferences"
+        eyebrow="System / Phase 3"
         title="設定"
-        description="Search Consoleプロパティ、分析しきい値、通知、データ密度を管理します。Phase 3で認証・保存処理へ接続できる構造です。"
-        actions={<Button icon={<Settings />}>変更を保存</Button>}
+        description="Google Search Console接続、分析エンジンのしきい値、通知・データ設定を管理します。"
       />
-      <SettingsWorkspace />
+      <LiveSettingsWorkspace />
     </>
   );
 }

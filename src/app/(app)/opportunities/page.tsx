@@ -1,19 +1,18 @@
 import { Sparkles } from 'lucide-react';
-import { OpportunityBoard, WorkspaceToolbar } from '@/components/application/workspaces';
+import { LiveOpportunityWorkspace, LiveWorkspaceToolbar } from '@/components/application/live-workspaces';
 import { Button, PageHead } from '@/components/ui';
-import { opportunities } from '@/lib/application-data';
 
 export default function OpportunitiesPage() {
   return (
     <>
       <PageHead
-        eyebrow="Opportunity intelligence"
+        eyebrow="Opportunity intelligence / GSC"
         title="改善機会"
-        description="順位・CTR・成長・回復・内部リンクのシグナルを統合し、いま実行したときのリターンが大きい候補をOpportunity Score順に整理します。"
+        description="検索需要・順位帯・自サイトCTR基準・期間変化・リスクを統合し、実データからOpportunity Scoreを算出します。"
         actions={<Button icon={<Sparkles />}>候補を再分析</Button>}
       />
-      <WorkspaceToolbar compact />
-      <OpportunityBoard items={opportunities} />
+      <LiveWorkspaceToolbar compact />
+      <LiveOpportunityWorkspace />
     </>
   );
 }

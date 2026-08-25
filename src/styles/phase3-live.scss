@@ -1,0 +1,12 @@
+.p3-detail-grid { margin-top:10px; }
+.p3-related-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.p3-related-table { min-width:720px; }
+.p3-related-table th:not(:first-child),.p3-related-table td:not(:first-child) { text-align:right; }
+.p3-live-signal .p2-signal-side { align-self:start; }
+
+@media (max-width:768px) {
+  .p3-detail-grid { grid-template-columns:1fr; }
+  .p3-related-table-wrap { margin-right:-10px; padding-right:10px; }
+  .p3-live-signal .p2-signal-row { min-width:760px; }
+  .p3-live-signal .p2-signal-list { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+}

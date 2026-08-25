@@ -1,19 +1,19 @@
-import { AlertTriangle } from 'lucide-react';
-import { SignalExplorer, WorkspaceToolbar } from '@/components/application/workspaces';
+import { TrendingDown } from 'lucide-react';
+import { LiveWorkspaceToolbar } from '@/components/application/live-workspaces';
+import { LiveGscSignalWorkspace } from '@/components/application/live-analysis-views';
 import { Button, PageHead } from '@/components/ui';
-import { declineSignals } from '@/lib/application-data';
 
 export default function DeclinesPage() {
   return (
     <>
       <PageHead
-        eyebrow="Decline monitoring"
+        eyebrow="Decline signals / GSC"
         title="急落"
-        description="クリック減少を順位・CTR・需要の変化へ分解して、影響の大きい下落から調査できる監視画面です。"
-        actions={<Button icon={<AlertTriangle />}>急落を再検出</Button>}
+        description="クリック減少と順位悪化を前期間比較から検出し、影響の大きい下落から原因確認・回復施策へつなげます。"
+        actions={<Button icon={<TrendingDown />}>急落を再分析</Button>}
       />
-      <WorkspaceToolbar compact />
-      <SignalExplorer mode="decline" rows={declineSignals} />
+      <LiveWorkspaceToolbar compact />
+      <LiveGscSignalWorkspace mode="decline" />
     </>
   );
 }
