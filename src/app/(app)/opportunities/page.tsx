@@ -1,3 +1,4 @@
+import { AiOpportunityAssistant } from '@/components/application/ai-opportunity-assistant';
 import { EmptyAwareOpportunityWorkspace } from '@/components/application/empty-aware-workspaces';
 import { LiveWorkspaceToolbar } from '@/components/application/live-workspaces';
 import { AnalysisExportButton, UrlNormalizationPanel } from '@/components/application/production-workspaces';
@@ -15,6 +16,7 @@ export default function OpportunitiesPage() {
       <LiveWorkspaceToolbar compact />
       <UrlNormalizationPanel />
       <EmptyAwareOpportunityWorkspace />
+      <AiOpportunityAssistant />
     </>
   );
 }
