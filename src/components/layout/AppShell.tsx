@@ -6,7 +6,6 @@ import {
   Activity,
   BarChart3,
   Bell,
-  BookOpenCheck,
   FileText,
   Gauge,
   HelpCircle,
@@ -16,6 +15,7 @@ import {
   Sparkles,
   TrendingDown,
   TrendingUp,
+  Unlink2,
 } from 'lucide-react';
 
 const primaryNav = [
@@ -23,17 +23,24 @@ const primaryNav = [
   { href: '/queries', label: 'クエリ分析', icon: Search },
   { href: '/pages', label: 'ページ分析', icon: FileText },
   { href: '/opportunities', label: '改善機会', icon: Sparkles },
-  { href: '/design-system', label: 'UIシステム', icon: Layers3 },
 ];
 
 const analysisNav = [
   { href: '/growth', label: '急上昇', icon: TrendingUp },
   { href: '/declines', label: '急落', icon: TrendingDown },
   { href: '/ctr', label: 'CTR改善', icon: Activity },
+  { href: '/cannibalization', label: 'カニバリ', icon: Unlink2 },
   { href: '/reports', label: 'レポート', icon: BarChart3 },
 ];
 
-function NavLink({ href, label, icon: Icon }: (typeof primaryNav)[number]) {
+const systemNav = [
+  { href: '/design-system', label: 'UIシステム', icon: Layers3 },
+  { href: '/settings', label: '設定', icon: Settings },
+];
+
+const allNav = [...primaryNav, ...analysisNav, ...systemNav];
+
+function NavLink({ href, label, icon: Icon }: (typeof allNav)[number]) {
   const pathname = usePathname();
   const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(`${href}/`));
 
@@ -47,9 +54,11 @@ function NavLink({ href, label, icon: Icon }: (typeof primaryNav)[number]) {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const current = [...primaryNav, ...analysisNav].find(
+  const current = allNav.find(
     (item) => pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(`${item.href}/`)),
   );
+
+  const mobileNav = [primaryNav[0], primaryNav[1], primaryNav[2], primaryNav[3], analysisNav[4]];
 
   return (
     <div className="app-shell">
@@ -64,24 +73,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <nav className="app-nav">
           <div className="app-nav__section">Workspace</div>
-          {primaryNav.map((item) => (
-            <NavLink key={item.href} {...item} />
-          ))}
+          {primaryNav.map((item) => <NavLink key={item.href} {...item} />)}
           <div className="app-nav__section">Analysis</div>
-          {analysisNav.map((item) => (
-            <NavLink key={item.href} {...item} />
-          ))}
+          {analysisNav.map((item) => <NavLink key={item.href} {...item} />)}
           <div className="app-nav__section">System</div>
-          <NavLink href="/settings" label="設定" icon={Settings} />
+          {systemNav.map((item) => <NavLink key={item.href} {...item} />)}
         </nav>
 
         <div className="app-sidebar__footer">
           <div className="app-sidebar__status">
             <div className="app-sidebar__status-title">
               <span className="app-sidebar__status-dot" />
-              Phase 1 Foundation
+              Phase 2 Application UI
             </div>
-            <div className="app-sidebar__status-text">UI基盤・ダミーデータ環境</div>
+            <div className="app-sidebar__status-text">全画面・UX・ダミーデータ</div>
           </div>
         </div>
       </aside>
@@ -100,12 +105,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Search aria-hidden="true" />
             <span>クエリ・ページを検索...</span>
           </div>
-          <button className="ui-icon-button" type="button" aria-label="通知">
-            <Bell size={14} />
-          </button>
-          <button className="ui-icon-button" type="button" aria-label="ヘルプ">
-            <HelpCircle size={14} />
-          </button>
+          <button className="ui-icon-button" type="button" aria-label="通知"><Bell size={14} /></button>
+          <button className="ui-icon-button" type="button" aria-label="ヘルプ"><HelpCircle size={14} /></button>
           <div className="app-user">
             <span className="app-user__avatar">SO</span>
             <span className="app-user__name">Shunsuke Ota</span>
@@ -113,17 +114,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="app-main">
-        <div className="app-content">{children}</div>
-      </main>
+      <main className="app-main"><div className="app-content">{children}</div></main>
 
       <nav className="mobile-nav" aria-label="モバイルナビゲーション">
-        {primaryNav.slice(0, 5).map(({ href, label, icon: Icon }) => {
+        {mobileNav.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(`${href}/`));
           return (
             <Link key={href} className={`mobile-nav__link${active ? ' is-active' : ''}`} href={href}>
               <Icon aria-hidden="true" />
-              <span>{label.replace('ダッシュボード', '概要').replace('UIシステム', 'UI')}</span>
+              <span>{label.replace('ダッシュボード', '概要').replace('改善機会', '改善')}</span>
             </Link>
           );
         })}

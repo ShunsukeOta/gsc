@@ -1,72 +1,79 @@
 # GSC Analyzer
 
-Google Search Console のデータを「見る」だけでなく、**次に何を改善すべきか判断するための分析ツール**です。
+Google Search Console のデータを「見る」だけではなく、次に実行すべきSEO改善へ変換するための分析アプリです。
 
-## Phase 1
+## Current phase
 
-Phase 1 では、添付の青ベース UI キットを実際に使える Web デザインシステムへ変換しています。
+**Phase 2 — Application UI / Dummy Data / UX**
 
-- Next.js / TypeScript / SCSS
-- Noto Sans JP のみ使用
-- 小さめの文字サイズと高い情報密度
-- PC: 固定サイドバー + 高密度ダッシュボード
-- SP: 下部ナビ + カード再配置 + データテーブル横スクロール
-- Design Tokens
-- Button / Badge / Chip / Form / Tabs / Alert / Skeleton / Empty State / Pagination
-- KPI / Trend / Insight / Chart / Query Table
-- `/design-system` に live UI catalog
-- `/dashboard` に Phase 1 モックダッシュボード
-- Phase 2 用の分析ルート骨格
+Phase 1 で作成した Design Token → UI Primitive → Analytics Component → Page の設計を維持したまま、主要画面をダミーデータで実用レベルまで実装しています。
 
-## Setup
+## Stack
+
+- Next.js 15 / App Router
+- React 19
+- TypeScript
+- SCSS
+- Noto Sans JP only
+- lucide-react
+- GitHub Actions CI
+
+## Routes
+
+- `/dashboard` — 全体KPI・今日やるSEO・デバイス・順位分布
+- `/queries` — クエリ分析 / 検索・優先度フィルター・ソート・選択
+- `/queries/[id]` — クエリ詳細
+- `/pages` — ページ分析
+- `/pages/[id]` — ページ詳細
+- `/opportunities` — Opportunity Scoreによる改善機会
+- `/growth` — 急上昇
+- `/declines` — 急落
+- `/ctr` — CTR改善候補
+- `/cannibalization` — カニバリ分析
+- `/reports` — レポート履歴・生成モーダル
+- `/settings` — プロパティ・分析条件・通知・表示設定
+- `/design-system` — Phase 1から継続するlive UI catalog
+
+## Architecture
+
+```text
+src/
+├─ app/
+│  └─ (app)/
+├─ components/
+│  ├─ ui/             # 汎用UI primitive
+│  ├─ analytics/      # GSC向けの基礎分析部品
+│  ├─ application/    # Phase 2の複合・操作系コンポーネント
+│  └─ layout/
+├─ lib/
+│  ├─ mock-data.ts
+│  └─ application-data.ts
+└─ styles/
+   ├─ _tokens.scss
+   ├─ globals.scss
+   └─ phase2.scss
+```
+
+## Responsive policy
+
+PCは固定サイドバー + 高密度テーブル + 複数カラムで情報量を最大化します。SPでは単純縮小せず、下部ナビ、カード再配置、横スクロール可能なデータテーブル、操作領域の再配置を使って情報を落とさず閲覧できる構成にしています。
+
+## Development
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open:
+Production build:
 
-```text
-http://localhost:3000/dashboard
-http://localhost:3000/design-system
+```bash
+npm run build
 ```
 
-## Structure
+## Phase roadmap
 
-```text
-src/
-├─ app/
-│  ├─ (app)/
-│  │  ├─ dashboard/
-│  │  ├─ design-system/
-│  │  └─ [section]/
-│  ├─ layout.tsx
-│  └─ page.tsx
-├─ components/
-│  ├─ analytics/
-│  ├─ layout/
-│  └─ ui/
-├─ lib/
-│  └─ mock-data.ts
-└─ styles/
-   ├─ _tokens.scss
-   ├─ _mixins.scss
-   └─ globals.scss
-```
-
-## Development policy
-
-- 画面固有の色・余白・角丸を増やさず、Design Tokens を優先する
-- 共通操作は `components/ui` に閉じ込める
-- GSC 固有の表現は `components/analytics` に閉じ込める
-- PC/SP で DOM を安易に二重化しない
-- データ列は SP で削除せず、必要に応じて横スクロールで情報量を維持する
-- Phase 2 以降も `/design-system` を UI の基準として維持する
-
-## Roadmap
-
-1. Phase 1: Foundation / Design System / App Shell
-2. Phase 2: Full application UI with mock data
-3. Phase 3: Google OAuth / Search Console API / Analysis Engine
-4. Phase 4: Recommendation engine / anomaly detection / production hardening
+1. Foundation / Design System ✅
+2. Application UI / Dummy Data / UX ← current
+3. Google OAuth / GSC API / Analysis Engine
+4. Production intelligence / anomaly detection / AI assistance
