@@ -1,5 +1,6 @@
 import { Download, SlidersHorizontal } from 'lucide-react';
-import { LivePerformanceWorkspace, LiveWorkspaceToolbar } from '@/components/application/live-workspaces';
+import { EmptyAwarePerformanceWorkspace } from '@/components/application/empty-aware-workspaces';
+import { LiveWorkspaceToolbar } from '@/components/application/live-workspaces';
 import { Button, PageHead } from '@/components/ui';
 
 export default function PagesPage() {
@@ -12,7 +13,7 @@ export default function PagesPage() {
         actions={<><Button variant="secondary" icon={<Download />}>エクスポート</Button><Button icon={<SlidersHorizontal />}>分析条件</Button></>}
       />
       <LiveWorkspaceToolbar compact />
-      <LivePerformanceWorkspace kind="pages" />
+      <EmptyAwarePerformanceWorkspace kind="pages" />
     </>
   );
 }

@@ -1,5 +1,6 @@
 import { Sparkles } from 'lucide-react';
-import { LiveOpportunityWorkspace, LiveWorkspaceToolbar } from '@/components/application/live-workspaces';
+import { EmptyAwareOpportunityWorkspace } from '@/components/application/empty-aware-workspaces';
+import { LiveWorkspaceToolbar } from '@/components/application/live-workspaces';
 import { Button, PageHead } from '@/components/ui';
 
 export default function OpportunitiesPage() {
@@ -12,7 +13,7 @@ export default function OpportunitiesPage() {
         actions={<Button icon={<Sparkles />}>候補を再分析</Button>}
       />
       <LiveWorkspaceToolbar compact />
-      <LiveOpportunityWorkspace />
+      <EmptyAwareOpportunityWorkspace />
     </>
   );
 }
