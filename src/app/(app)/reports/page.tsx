@@ -1,6 +1,5 @@
 import { DataSourceStatus, LiveWorkspaceToolbar } from '@/components/application/live-workspaces';
-import { ProductionReportTools } from '@/components/application/production-workspaces';
-import { ReportsWorkspace } from '@/components/application/workspaces';
+import { ProductionReportTools, UrlNormalizationPanel } from '@/components/application/production-workspaces';
 import { PageHead } from '@/components/ui';
 
 export default function ReportsPage() {
@@ -9,12 +8,12 @@ export default function ReportsPage() {
       <PageHead
         eyebrow="Reporting / Phase 4"
         title="レポート"
-        description="現在選択中のGSCプロパティ・期間・デバイス・しきい値を反映した実データを、分析用途ごとのCSVとして出力できます。"
+        description="現在選択中のGSCプロパティ・期間・デバイス・しきい値を反映した実データを、分析用途ごとのCSVとして出力します。ダミーの履歴表示は本番画面から除外しています。"
       />
       <LiveWorkspaceToolbar compact />
       <DataSourceStatus />
       <ProductionReportTools />
-      <ReportsWorkspace />
+      <UrlNormalizationPanel compact />
     </>
   );
 }
