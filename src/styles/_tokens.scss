@@ -4,7 +4,7 @@ $breakpoint-tablet: 1100px;
 :root {
   color-scheme: light;
 
-  --font-sans: 'Noto Sans JP', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-sans: var(--font-noto-sans-jp), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   --c-primary-700: #0b3f86;
   --c-primary-600: #0a55b7;
