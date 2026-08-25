@@ -1,0 +1,16 @@
+.p4-history { margin: 10px 0; overflow: hidden; }
+.p4-history__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 12px 12px 0; }
+.p4-history__head .ui-card__head { flex: 1; margin-bottom: 10px; }
+.p4-history__actions { display: flex; gap: 4px; }
+.p4-history__scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.p4-history-table { width: 100%; min-width: 820px; border-collapse: collapse; font-size: 9px; }
+.p4-history-table th { padding: 7px 9px; border-top: 1px solid var(--c-border); border-bottom: 1px solid var(--c-border); color: var(--c-text-muted); background: var(--c-neutral-50); font-size: 8px; font-weight: 750; text-align: right; white-space: nowrap; }
+.p4-history-table th:first-child,.p4-history-table th:nth-child(2) { text-align: left; }
+.p4-history-table td { padding: 8px 9px; border-bottom: 1px solid var(--c-neutral-150); color: var(--c-neutral-800); text-align: right; white-space: nowrap; }
+.p4-history-table td:first-child,.p4-history-table td:nth-child(2) { text-align: left; }
+.p4-history-date { display: inline-flex; align-items: center; gap: 4px; }
+.p4-history-date svg { width: 11px; color: var(--c-primary-600); }
+.p4-history__foot { display: flex; align-items: center; gap: 5px; padding: 8px 11px; color: var(--c-text-muted); background: var(--c-neutral-50); font-size: 8px; line-height: 1.5; }
+.p4-history__foot svg { width: 11px; flex: 0 0 auto; }
+.p4-history__empty { padding: 0 12px 12px; }
+@media (max-width: 768px) { .p4-history__head { flex-direction: column; } .p4-history__actions { width: 100%; } .p4-history__actions .ui-button { flex: 1; } }

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Activity,
+  AlertTriangle,
   BarChart3,
   Bell,
   FileText,
@@ -26,6 +27,7 @@ const primaryNav = [
 ];
 
 const analysisNav = [
+  { href: '/anomalies', label: '異常検知', icon: AlertTriangle },
   { href: '/growth', label: '急上昇', icon: TrendingUp },
   { href: '/declines', label: '急落', icon: TrendingDown },
   { href: '/ctr', label: 'CTR改善', icon: Activity },
@@ -56,7 +58,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const current = allNav.find(
     (item) => pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(`${item.href}/`)),
   );
-  const mobileNav = [primaryNav[0], primaryNav[1], primaryNav[2], primaryNav[3], analysisNav[4]];
+  const mobileNav = [primaryNav[0], primaryNav[1], primaryNav[2], primaryNav[3], analysisNav[5]];
 
   return (
     <div className="app-shell">
@@ -82,9 +84,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="app-sidebar__status">
             <div className="app-sidebar__status-title">
               <span className="app-sidebar__status-dot" />
-              Phase 3 GSC Engine
+              Phase 4 Production
             </div>
-            <div className="app-sidebar__status-text">OAuth・実データ・分析エンジン</div>
+            <div className="app-sidebar__status-text">URL正規化・異常検知・品質診断</div>
           </div>
         </div>
       </aside>

@@ -3,6 +3,8 @@ import { buildDateRange } from './dates';
 import { DEFAULT_THRESHOLDS, getGscRuntimeConfig } from './env';
 import { runAnalysisEngine } from './analysis';
 import { buildGscRelations } from './relations';
+import { buildDataQualitySummary, buildProductionAnomalies } from './production-intelligence';
+import { aggregateGscPageRows, buildUrlNormalizationSummary } from './url-normalization';
 import type { AnalysisThresholds, GscAnalysisBundle, GscDevice, GscFilter, GscSearchRequest } from './types';
 
 type AnalysisOptions = {
@@ -31,7 +33,7 @@ function requestBase(startDate: string, endDate: string, device: GscDevice): Gsc
 }
 
 const cacheKey = (siteUrl: string, days: number, device: GscDevice, thresholds: AnalysisThresholds) =>
-  JSON.stringify([siteUrl, days, device, thresholds.growthPercent, thresholds.declinePercent, thresholds.minImpressions, thresholds.opportunityMaxPosition]);
+  JSON.stringify(['v4', siteUrl, days, device, thresholds.growthPercent, thresholds.declinePercent, thresholds.minImpressions, thresholds.opportunityMaxPosition]);
 
 export async function getGscAnalysis(accessToken: string, siteUrl: string, options: AnalysisOptions = {}) {
   const runtime = getGscRuntimeConfig();
@@ -59,6 +61,14 @@ export async function getGscAnalysis(accessToken: string, siteUrl: string, optio
     querySearchAnalytics(accessToken, siteUrl, { ...currentBase, dimensions: ['date'], aggregationType: 'auto', rowLimit: Math.max(100, range.days + 5) }),
   ]);
 
+  // Phase 4: URL fragments identify in-page client state, not a separate HTTP resource.
+  // Normalize and aggregate before any scoring/cannibalization logic so metrics are not
+  // split across `page/#section` variants. Query strings are intentionally preserved.
+  const normalizedCurrentPages = aggregateGscPageRows(currentPages.rows, 0);
+  const normalizedPreviousPages = aggregateGscPageRows(previousPages.rows, 0);
+  const normalizedQueryPages = aggregateGscPageRows(queryPages.rows, 1);
+  const urlNormalization = buildUrlNormalizationSummary(normalizedCurrentPages, normalizedQueryPages);
+
   const core = runAnalysisEngine({
     siteUrl,
     range,
@@ -67,14 +77,41 @@ export async function getGscAnalysis(accessToken: string, siteUrl: string, optio
     previousTotal: previousTotal.rows?.[0],
     currentQueries: currentQueries.rows,
     previousQueries: previousQueries.rows,
-    currentPages: currentPages.rows,
-    previousPages: previousPages.rows,
-    queryPages: queryPages.rows,
+    currentPages: normalizedCurrentPages.rows,
+    previousPages: normalizedPreviousPages.rows,
+    queryPages: normalizedQueryPages.rows,
     devices: devices.rows ?? [],
     daily: daily.rows ?? [],
     partialDataFrom: daily.metadata?.first_incomplete_date,
   });
-  const bundle: GscAnalysisBundle = { ...core, relations: buildGscRelations(queryPages.rows) };
+
+  const diagnostics: GscAnalysisBundle['diagnostics'] = {
+    fetchedQueryRows: currentQueries.rows.length,
+    fetchedPageRows: currentPages.rows.length,
+    fetchedQueryPageRows: queryPages.rows.length,
+    normalizedPageRows: normalizedCurrentPages.rows.length,
+    normalizedQueryPageRows: normalizedQueryPages.rows.length,
+    queryRowsTruncated: currentQueries.truncated,
+    pageRowsTruncated: currentPages.truncated,
+    queryPageRowsTruncated: queryPages.truncated,
+    cache: 'miss',
+  };
+
+  const baseBundle: GscAnalysisBundle = {
+    ...core,
+    diagnostics,
+    relations: buildGscRelations(normalizedQueryPages.rows),
+    urlNormalization,
+  };
+  const anomalies = buildProductionAnomalies(baseBundle);
+  const dataQuality = buildDataQualitySummary({
+    bundle: baseBundle,
+    queryRowsTruncated: currentQueries.truncated,
+    pageRowsTruncated: currentPages.truncated,
+    queryPageRowsTruncated: queryPages.truncated,
+    normalization: urlNormalization,
+  });
+  const bundle: GscAnalysisBundle = { ...baseBundle, anomalies, dataQuality };
 
   if (runtime.cacheTtlMs > 0) {
     analysisCache.set(key, { value: bundle, expiresAt: Date.now() + runtime.cacheTtlMs });
