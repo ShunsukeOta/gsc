@@ -11,7 +11,7 @@ import {
   X,
   XCircle,
 } from 'lucide-react';
-import { useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
+import { useState, type ButtonHTMLAttributes, type HTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 
 export function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ');
@@ -43,8 +43,8 @@ export function IconButton({ label, children, className, ...props }: ButtonHTMLA
   );
 }
 
-export function Card({ children, padded = true, className }: { children: ReactNode; padded?: boolean; className?: string }) {
-  return <section className={cx('ui-card', padded && 'ui-card--padded', className)}>{children}</section>;
+export function Card({ children, padded = true, className, ...props }: HTMLAttributes<HTMLElement> & { padded?: boolean }) {
+  return <section className={cx('ui-card', padded && 'ui-card--padded', className)} {...props}>{children}</section>;
 }
 
 export function CardHeader({ title, description, action }: { title: string; description?: string; action?: ReactNode }) {
