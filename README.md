@@ -6,7 +6,7 @@ Google Search Console のデータを「見る」だけではなく、次に実�
 
 **Phase 4 — Production Intelligence / URL Normalization / Anomaly Detection**
 
-Phase 3のGoogle OAuth / Search Console API / Opportunity Scoreを土台に、本番利用で問題になりやすいURLバリアント、未確定データ、取得上限、異常検知、実CSV出力まで対応しています。
+Phase 3のGoogle OAuth / Search Console API / Opportunity Scoreを土台に、本番利用で問題になりやすいURLバリアント、未確定データ、取得上限、異常検知、実CSV出力、軽量履歴、任意のAI改善ブリーフまで対応しています。
 
 ## Stack
 
@@ -18,6 +18,7 @@ Phase 3のGoogle OAuth / Search Console API / Opportunity Scoreを土台に、�
 - Google OAuth 2.0 (Web Server / PKCE / state)
 - Search Console API
 - Node.js crypto (AES-256-GCM encrypted HttpOnly session cookie)
+- Optional OpenAI Responses API for SEO briefs
 - lucide-react
 - GitHub Actions CI
 
@@ -50,15 +51,11 @@ Period comparison / Analysis Engine
    └─ Relations
    ↓
 Production Intelligence
-   ├─ rank-loss
-   ├─ ctr-loss
-   ├─ demand-loss
-   ├─ traffic-drop
-   ├─ growth-breakout
-   ├─ daily-drop
+   ├─ rank-loss / ctr-loss / demand-loss
+   ├─ traffic-drop / growth-breakout / daily-drop
    └─ data quality score
    ↓
-Dashboard / Anomalies / CSV exports
+Dashboard / Anomalies / CSV / local snapshots / optional AI brief
 ```
 
 ## URL normalization policy
@@ -82,15 +79,15 @@ https://campaign-navi.com/betimo/
 - **`#fragment` のみ自動除外**
 - `?query=...` は別ページの可能性があるため保持
 - 元URL variantは捨てず `urlNormalization.groups` に保持
-- page / query×page の両方を正規化してから分析
+- current page / previous page / query×page を同じ規則で正規化
 - Cannibalization判定でもfragment違いを別ページ扱いしない
-- Current / Previous両期間を同じ規則で正規化するため、期間差分も同一URL単位で比較
+- Opportunity / CTR / Page detail / Relations は正規化後URLを使用
 
-集約時は単純に行を1件残すのではなく、clicks / impressionsを合算し、CTRを `clicks / impressions` で再計算、positionをimpressions加重平均します。
+集約時は単純に1行を残すのではなく、clicks / impressionsを合算し、CTRを `clicks / impressions` で再計算、positionをimpressions加重平均します。これによりfragment単位の0% CTRカードや疑似カニバリを防ぎます。
 
 ## Production anomaly detection
 
-`/anomalies` では、単なる増減率ではなく原因候補を分類します。
+`/anomalies` では単なる増減率ではなく原因候補を分類します。
 
 - `rank-loss` — 順位悪化 + クリック減
 - `ctr-loss` — 順位維持 + CTR低下
@@ -99,19 +96,11 @@ https://campaign-navi.com/betimo/
 - `growth-breakout` — クリック / 表示回数の強い成長
 - `daily-drop` — 確定済み直近日が直近7日中央値を大幅に下回る
 
-各シグナルには以下を持たせます。
-
-- score
-- confidence
-- evidence
-- recommended action
-- scope (site / page / query)
-
-未確定日 (`metadata.first_incomplete_date`) は日次異常検知の基準から除外し、Google側の処理遅延による誤検知を抑えます。
+各シグナルはscore / confidence / evidence / recommended action / scopeを持ちます。`metadata.first_incomplete_date` 以降は日次異常検知の基準から除外し、Google側の処理遅延による誤検知を抑えます。
 
 ## Data quality
 
-Phase 4では分析結果そのものだけでなく、分析データの状態もスコア化します。
+分析結果そのものだけでなく、分析データの状態も0〜100でスコア化します。
 
 - incomplete data
 - query row cap
@@ -119,9 +108,7 @@ Phase 4では分析結果そのものだけでなく、分析データの状態�
 - query×page row cap
 - normalized URL groups
 
-`queryAllSearchAnalytics` が設定上限までフルに取得した場合は `truncated` として診断します。
-
-Search Analytics API自体がGoogle内部の上位行制限を受ける可能性があるため、取得上限未満でも「全検索行の完全取得」を保証するものではありません。UIにもこの前提を表示します。
+`queryAllSearchAnalytics` が設定上限までフルに取得した場合は `truncated` として診断します。ただしSearch Analytics API自体がGoogle内部の上位行制限を受ける可能性があるため、取得上限未満でも「全検索行の完全取得」を保証するものではありません。
 
 ## CTR benchmark / Opportunity Score
 
@@ -135,7 +122,49 @@ Opportunity Scoreは以下を組み合わせた0〜100のスコアです。
 - click growth / decline
 - position risk
 
-URL page rowsはPhase 4の正規化後データを使うため、fragmentごとにCTR 0%のカードが量産される問題を防ぎます。
+ページ行はPhase 4のURL正規化後データを使うため、fragmentごとにCTR 0%の候補が量産される問題を防ぎます。
+
+## Optional AI improvement brief
+
+`/opportunities` では任意でAI改善ブリーフを生成できます。通常のGSC分析・Opportunity・異常検知にはOpenAI設定は不要です。
+
+Required only for AI:
+
+```env
+OPENAI_API_KEY=...
+OPENAI_MODEL=gpt-5.6-luna
+```
+
+設計方針:
+
+- API keyはサーバー側のみで使用
+- Google/GSC認証済みsessionが必要
+- clientから自由なpromptは送らず、Opportunity IDだけを受け取りサーバー側で分析データを再構築
+- GSC数値・関連クエリ/ページ・URL正規化・データ品質だけを入力
+- SERPや対象ページ本文を実際に見たとは回答させない
+- URLやクエリ内の文字列を命令として扱わないようprompt injection対策を明示
+- 原因は断定せず、データから確定できないものは仮説として提示
+
+## Analysis snapshot history
+
+`/reports` では、実GSC分析完了時に軽量スナップショットをブラウザのlocalStorageへ最大24件保存します。
+
+保存するもの:
+
+- site URL
+- generatedAt / range
+- KPI
+- Opportunity件数
+- anomaly件数
+- data quality score
+
+保存しないもの:
+
+- OAuth token
+- Search Consoleの全query/page行
+- Google認証情報
+
+履歴はブラウザローカルのみで、JSONとして書き出し・サイト単位削除ができます。サーバーDBやクロスデバイス同期は勝手に外部providerを選定せず、必要になった時点で別途設計します。
 
 ## Google Cloud setup
 
@@ -164,11 +193,15 @@ GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 GSC_SESSION_SECRET=32文字以上の十分に長いランダム値
 
-# optional
+# optional GSC settings
 GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/google/callback
 GSC_DATA_STATE=all
 GSC_CACHE_TTL_SECONDS=300
 GSC_MAX_ROWS=25000
+
+# optional AI
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-5.6-luna
 ```
 
 ## OAuth security
@@ -190,6 +223,7 @@ GSC_MAX_ROWS=25000
 - `GET /api/auth/session`
 - `GET /api/gsc/properties`
 - `GET /api/gsc/analysis`
+- `POST /api/gsc/ai-brief` — optional AI brief
 
 ## Application routes
 
@@ -198,13 +232,13 @@ GSC_MAX_ROWS=25000
 - `/queries/[slug]` — Query detail
 - `/pages` — normalized page analysis + real CSV
 - `/pages/[slug]` — Page detail
-- `/opportunities` — Opportunity Score + URL normalization disclosure
+- `/opportunities` — Opportunity Score + URL normalization + optional AI brief
 - `/anomalies` — Production anomaly detection
 - `/growth` — Growth signals
 - `/declines` — Decline signals
 - `/ctr` — CTR opportunities
 - `/cannibalization` — query×normalized-page analysis
-- `/reports` — Current live analysis CSV exports
+- `/reports` — live CSV exports + local snapshot history
 - `/settings` — OAuth / thresholds / display
 - `/design-system` — live UI catalog
 
@@ -214,6 +248,9 @@ GSC_MAX_ROWS=25000
 src/
 ├─ app/
 │  ├─ api/
+│  │  └─ gsc/
+│  │     ├─ analysis/
+│  │     └─ ai-brief/
 │  └─ (app)/
 ├─ components/
 │  ├─ ui/
@@ -222,7 +259,9 @@ src/
 │  │  ├─ gsc-context.tsx
 │  │  ├─ live-workspaces.tsx
 │  │  ├─ empty-aware-workspaces.tsx
-│  │  └─ production-workspaces.tsx
+│  │  ├─ production-workspaces.tsx
+│  │  ├─ ai-opportunity-assistant.tsx
+│  │  └─ analysis-history.tsx
 │  └─ layout/
 ├─ lib/
 │  └─ gsc/
@@ -238,7 +277,9 @@ src/
    ├─ phase2.scss
    ├─ phase3.scss
    ├─ phase3-live.scss
-   └─ phase4.scss
+   ├─ phase4.scss
+   ├─ phase4-ai.scss
+   └─ phase4-history.scss
 ```
 
 ## Development
@@ -259,4 +300,4 @@ npm run build
 1. Foundation / Design System ✅
 2. Application UI / Dummy Data / UX ✅
 3. Google OAuth / GSC API / Analysis Engine ✅
-4. Production Intelligence / URL normalization / anomaly detection / quality / exports ← current
+4. Production Intelligence / URL normalization / anomaly detection / quality / exports / optional AI ✅
