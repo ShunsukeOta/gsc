@@ -1,0 +1,25 @@
+@use './tokens' as *;
+
+@mixin mobile {
+  @media (max-width: $breakpoint-mobile) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (max-width: $breakpoint-tablet) {
+    @content;
+  }
+}
+
+@mixin focus-ring {
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(17, 107, 216, 0.14);
+  border-color: var(--c-primary-500);
+}
+
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
