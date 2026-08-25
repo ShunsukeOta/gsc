@@ -50,21 +50,27 @@ export async function queryAllSearchAnalytics(
   let startRow = 0;
   let metadata: GscSearchAnalyticsResponse['metadata'];
   const pageSize = Math.min(25_000, Math.max(1, maxRows));
+  let lastPageWasFull = false;
 
   while (rows.length < maxRows) {
     const remaining = maxRows - rows.length;
+    const requested = Math.min(pageSize, remaining);
     const response = await querySearchAnalytics(accessToken, siteUrl, {
       ...request,
-      rowLimit: Math.min(pageSize, remaining),
+      rowLimit: requested,
       startRow,
     });
     const page = response.rows ?? [];
     if (!metadata && response.metadata) metadata = response.metadata;
     rows.push(...page);
-    if (page.length < Math.min(pageSize, remaining)) break;
+    lastPageWasFull = page.length === requested;
+    if (page.length < requested) break;
     startRow += page.length;
     if (page.length === 0) break;
   }
 
-  return { rows, metadata };
+  // Hitting the caller-defined cap with a full final page means more rows may exist.
+  // This is a diagnostic, not a claim that Google exposes every underlying row.
+  const truncated = rows.length >= maxRows && lastPageWasFull;
+  return { rows, metadata, truncated };
 }
