@@ -43,7 +43,6 @@ const allNav = [...primaryNav, ...analysisNav, ...systemNav];
 function NavLink({ href, label, icon: Icon }: (typeof allNav)[number]) {
   const pathname = usePathname();
   const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(`${href}/`));
-
   return (
     <Link className={`app-nav__link${active ? ' is-active' : ''}`} href={href}>
       <Icon aria-hidden="true" />
@@ -57,7 +56,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const current = allNav.find(
     (item) => pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(`${item.href}/`)),
   );
-
   const mobileNav = [primaryNav[0], primaryNav[1], primaryNav[2], primaryNav[3], analysisNav[4]];
 
   return (
@@ -84,9 +82,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="app-sidebar__status">
             <div className="app-sidebar__status-title">
               <span className="app-sidebar__status-dot" />
-              Phase 2 Application UI
+              Phase 3 GSC Engine
             </div>
-            <div className="app-sidebar__status-text">全画面・UX・ダミーデータ</div>
+            <div className="app-sidebar__status-text">OAuth・実データ・分析エンジン</div>
           </div>
         </div>
       </aside>
