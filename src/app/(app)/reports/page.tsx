@@ -1,19 +1,19 @@
-import { FileDown } from 'lucide-react';
 import { DataSourceStatus, LiveWorkspaceToolbar } from '@/components/application/live-workspaces';
+import { ProductionReportTools } from '@/components/application/production-workspaces';
 import { ReportsWorkspace } from '@/components/application/workspaces';
-import { Button, PageHead } from '@/components/ui';
+import { PageHead } from '@/components/ui';
 
 export default function ReportsPage() {
   return (
     <>
       <PageHead
-        eyebrow="Reporting / Phase 3"
+        eyebrow="Reporting / Phase 4"
         title="レポート"
-        description="現在のGSC接続・分析条件を確認しながらレポートを構成します。レポート履歴とファイル永続化はPhase 4で本番ストレージへ接続します。"
-        actions={<Button variant="secondary" icon={<FileDown />}>一括ダウンロード</Button>}
+        description="現在選択中のGSCプロパティ・期間・デバイス・しきい値を反映した実データを、分析用途ごとのCSVとして出力できます。"
       />
       <LiveWorkspaceToolbar compact />
       <DataSourceStatus />
+      <ProductionReportTools />
       <ReportsWorkspace />
     </>
   );
