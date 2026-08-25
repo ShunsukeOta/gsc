@@ -49,6 +49,53 @@ export type DashboardInsight = { title: string; value: string; meta: string; act
 export type RelatedPerformance = { label: string; clicks: number; impressions: number; ctr: number; position: number };
 export type GscRelations = { queryToPages: Record<string, RelatedPerformance[]>; pageToQueries: Record<string, RelatedPerformance[]> };
 
+export type UrlVariantGroup = {
+  canonicalUrl: string;
+  variants: string[];
+  fragmentVariants: number;
+  clicks: number;
+  impressions: number;
+};
+
+export type UrlNormalizationSummary = {
+  affectedGroups: number;
+  fragmentRows: number;
+  collapsedPageRows: number;
+  collapsedQueryPageRows: number;
+  groups: UrlVariantGroup[];
+  policy: 'fragment-only';
+};
+
+export type ProductionAnomalyKind = 'rank-loss' | 'ctr-loss' | 'demand-loss' | 'traffic-drop' | 'growth-breakout' | 'daily-drop';
+export type ProductionAnomaly = {
+  id: string;
+  kind: ProductionAnomalyKind;
+  scope: 'query' | 'page' | 'site';
+  severity: 'critical' | 'warning' | 'info';
+  label: string;
+  title: string;
+  summary: string;
+  action: string;
+  score: number;
+  confidence: number;
+  impressions: number;
+  clickDelta: number;
+  positionDelta?: number;
+  ctrDelta?: number;
+  evidence: string[];
+};
+
+export type DataQualitySummary = {
+  score: number;
+  level: 'excellent' | 'good' | 'caution';
+  notes: string[];
+  partialData: boolean;
+  queryRowsTruncated: boolean;
+  pageRowsTruncated: boolean;
+  queryPageRowsTruncated: boolean;
+  normalizedUrlGroups: number;
+};
+
 export type GscAnalysisBundle = {
   source: 'gsc';
   siteUrl: string;
@@ -70,7 +117,20 @@ export type GscAnalysisBundle = {
   dailyTasks: DailyTask[];
   insights: DashboardInsight[];
   relations?: GscRelations;
-  diagnostics: { fetchedQueryRows: number; fetchedPageRows: number; fetchedQueryPageRows: number; cache: 'hit' | 'miss' };
+  urlNormalization?: UrlNormalizationSummary;
+  anomalies?: ProductionAnomaly[];
+  dataQuality?: DataQualitySummary;
+  diagnostics: {
+    fetchedQueryRows: number;
+    fetchedPageRows: number;
+    fetchedQueryPageRows: number;
+    normalizedPageRows?: number;
+    normalizedQueryPageRows?: number;
+    queryRowsTruncated?: boolean;
+    pageRowsTruncated?: boolean;
+    queryPageRowsTruncated?: boolean;
+    cache: 'hit' | 'miss';
+  };
 };
 
 export type GoogleSession = { accessToken: string; refreshToken: string; expiresAt: number; email?: string; scope?: string };
