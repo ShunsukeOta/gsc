@@ -1,0 +1,90 @@
+$breakpoint-mobile: 768px;
+$breakpoint-tablet: 1100px;
+
+:root {
+  color-scheme: light;
+
+  --font-sans: 'Noto Sans JP', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --c-primary-700: #0b3f86;
+  --c-primary-600: #0a55b7;
+  --c-primary-500: #116bd8;
+  --c-primary-400: #4b8ee8;
+  --c-primary-300: #8eb9ef;
+  --c-primary-200: #c7ddf7;
+  --c-primary-100: #e4f0fc;
+  --c-primary-50: #f3f8fe;
+
+  --c-neutral-950: #14213a;
+  --c-neutral-900: #1f2f49;
+  --c-neutral-800: #31415b;
+  --c-neutral-700: #4d5d75;
+  --c-neutral-600: #65748b;
+  --c-neutral-500: #8794a8;
+  --c-neutral-400: #aeb8c7;
+  --c-neutral-300: #cdd4df;
+  --c-neutral-200: #dde3eb;
+  --c-neutral-150: #e8edf3;
+  --c-neutral-100: #f2f5f8;
+  --c-neutral-50: #f8fafc;
+  --c-white: #ffffff;
+
+  --c-success-700: #087443;
+  --c-success-100: #e9f8f0;
+  --c-warning-700: #a45a00;
+  --c-warning-100: #fff4df;
+  --c-danger-700: #c53232;
+  --c-danger-100: #fff0f0;
+  --c-info-700: #075bbd;
+  --c-info-100: #ebf4ff;
+
+  --c-bg: #f6f8fb;
+  --c-surface: #ffffff;
+  --c-surface-subtle: #fbfcfe;
+  --c-border: #dfe6ee;
+  --c-border-strong: #cbd5e1;
+  --c-text: #1c2a42;
+  --c-text-sub: #66748a;
+  --c-text-muted: #8b97a8;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  --radius-xs: 5px;
+  --radius-sm: 7px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-pill: 999px;
+
+  --shadow-xs: 0 1px 2px rgba(16, 37, 66, 0.04);
+  --shadow-sm: 0 2px 8px rgba(16, 37, 66, 0.06);
+  --shadow-md: 0 8px 24px rgba(16, 37, 66, 0.08);
+
+  --fs-2xs: 10px;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-base: 13px;
+  --fs-md: 14px;
+  --fs-lg: 16px;
+  --fs-xl: 20px;
+  --fs-2xl: 24px;
+  --fs-3xl: 30px;
+
+  --lh-tight: 1.25;
+  --lh-base: 1.55;
+  --lh-loose: 1.75;
+
+  --sidebar-width: 228px;
+  --header-height: 58px;
+  --mobile-nav-height: 64px;
+  --content-max: 1680px;
+
+  --transition: 160ms ease;
+}
