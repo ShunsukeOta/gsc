@@ -8,6 +8,7 @@ import {
 export type AiUsage = {
   inputTokens: number;
   cachedInputTokens: number;
+  cacheWriteInputTokens: number;
   outputTokens: number;
   totalTokens: number;
 };
@@ -15,6 +16,7 @@ export type AiUsage = {
 export type AiCostBreakdown = {
   inputUsd: number;
   cachedInputUsd: number;
+  cacheWriteUsd: number;
   outputUsd: number;
   totalUsd: number;
 };
@@ -26,7 +28,7 @@ export function normalizeAiCostLimit(value: unknown) {
 }
 
 export function estimateTokenUpperBound(text: string) {
-  // OpenAI text tokenizers are byte-based BPEs. UTF-8 byte length is deliberately used as
+  // GPT text tokenizers are byte-based BPEs. UTF-8 byte length is deliberately used as
   // a conservative upper bound: normal text is encoded into far fewer tokens than bytes.
   return Math.max(1, new TextEncoder().encode(text).byteLength);
 }
@@ -34,7 +36,9 @@ export function estimateTokenUpperBound(text: string) {
 export function planRewriteBudget(prompt: string, limitUsd: number) {
   const normalizedLimit = normalizeAiCostLimit(limitUsd);
   const estimatedInputTokens = estimateTokenUpperBound(prompt);
-  const estimatedInputUsd = estimatedInputTokens / 1_000_000 * GPT_5_6_LUNA_PRICING.inputPerMillion;
+  // Even though this route disables implicit cache writes, price the entire estimated
+  // input at the 1.25x cache-write rate for a stricter preflight ceiling.
+  const estimatedInputUsd = estimatedInputTokens / 1_000_000 * GPT_5_6_LUNA_PRICING.cacheWritePerMillion;
   const safetyBudgetUsd = normalizedLimit * 0.98;
   const remainingUsd = Math.max(0, safetyBudgetUsd - estimatedInputUsd);
   const budgetOutputTokens = Math.floor(remainingUsd / GPT_5_6_LUNA_PRICING.outputPerMillion * 1_000_000);
@@ -55,10 +59,13 @@ export function planRewriteBudget(prompt: string, limitUsd: number) {
 }
 
 export function calculateActualAiCost(usage: AiUsage): AiCostBreakdown {
-  const cached = Math.min(Math.max(usage.cachedInputTokens, 0), Math.max(usage.inputTokens, 0));
-  const uncached = Math.max(0, usage.inputTokens - cached);
+  const input = Math.max(usage.inputTokens, 0);
+  const cached = Math.min(Math.max(usage.cachedInputTokens, 0), input);
+  const cacheWrite = Math.min(Math.max(usage.cacheWriteInputTokens, 0), Math.max(0, input - cached));
+  const uncached = Math.max(0, input - cached - cacheWrite);
   const inputUsd = uncached / 1_000_000 * GPT_5_6_LUNA_PRICING.inputPerMillion;
   const cachedInputUsd = cached / 1_000_000 * GPT_5_6_LUNA_PRICING.cachedInputPerMillion;
+  const cacheWriteUsd = cacheWrite / 1_000_000 * GPT_5_6_LUNA_PRICING.cacheWritePerMillion;
   const outputUsd = Math.max(0, usage.outputTokens) / 1_000_000 * GPT_5_6_LUNA_PRICING.outputPerMillion;
-  return { inputUsd, cachedInputUsd, outputUsd, totalUsd: inputUsd + cachedInputUsd + outputUsd };
+  return { inputUsd, cachedInputUsd, cacheWriteUsd, outputUsd, totalUsd: inputUsd + cachedInputUsd + cacheWriteUsd + outputUsd };
 }

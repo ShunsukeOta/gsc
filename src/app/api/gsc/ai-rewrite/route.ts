@@ -45,7 +45,7 @@ function openAiErrorMessage(data: unknown, fallback: string) {
 
 function readUsage(data: unknown): AiUsage {
   if (!data || typeof data !== 'object' || !('usage' in data) || !data.usage || typeof data.usage !== 'object') {
-    return { inputTokens: 0, cachedInputTokens: 0, outputTokens: 0, totalTokens: 0 };
+    return { inputTokens: 0, cachedInputTokens: 0, cacheWriteInputTokens: 0, outputTokens: 0, totalTokens: 0 };
   }
   const usage = data.usage as Record<string, unknown>;
   const inputDetails = usage.input_tokens_details && typeof usage.input_tokens_details === 'object'
@@ -54,9 +54,11 @@ function readUsage(data: unknown): AiUsage {
   const inputTokens = Number(usage.input_tokens) || 0;
   const outputTokens = Number(usage.output_tokens) || 0;
   const cachedInputTokens = Number(inputDetails.cached_tokens) || 0;
+  const cacheWriteInputTokens = Number(inputDetails.cache_write_tokens) || 0;
   return {
     inputTokens,
     cachedInputTokens,
+    cacheWriteInputTokens,
     outputTokens,
     totalTokens: Number(usage.total_tokens) || inputTokens + outputTokens,
   };
@@ -150,6 +152,7 @@ export async function POST(request: NextRequest) {
         model: DEFAULT_AI_REWRITE_MODEL,
         input: prompt,
         reasoning: { effort: 'low' },
+        prompt_cache_options: { mode: 'explicit' },
         max_output_tokens: budget.maxOutputTokens,
       }),
       cache: 'no-store',

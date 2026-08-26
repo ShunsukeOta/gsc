@@ -58,11 +58,11 @@ export function AiCostSettings() {
       </div>
 
       <div className="p5-02-cost-rules">
-        <div><CircleDollarSign /><span><strong>{DEFAULT_AI_REWRITE_MODEL}</strong>入力 ${GPT_5_6_LUNA_PRICING.inputPerMillion.toFixed(2)} / 1M tokens、キャッシュ入力 ${GPT_5_6_LUNA_PRICING.cachedInputPerMillion.toFixed(2)}、出力 ${GPT_5_6_LUNA_PRICING.outputPerMillion.toFixed(2)}。</span></div>
-        <div><ShieldCheck /><span><strong>実行前ガード</strong>本文とGSC情報から保守的にtoken数を見積もり、上限を超えそうならOpenAI APIを呼びません。</span></div>
+        <div><CircleDollarSign /><span><strong>{DEFAULT_AI_REWRITE_MODEL}</strong>入力 ${GPT_5_6_LUNA_PRICING.inputPerMillion.toFixed(2)} / 1M、キャッシュ読込 ${GPT_5_6_LUNA_PRICING.cachedInputPerMillion.toFixed(2)}、キャッシュ書込 ${GPT_5_6_LUNA_PRICING.cacheWritePerMillion.toFixed(2)}、出力 ${GPT_5_6_LUNA_PRICING.outputPerMillion.toFixed(2)}。</span></div>
+        <div><ShieldCheck /><span><strong>実行前ガード</strong>UTF-8 byte数をtoken上限として保守的に見積もり、さらに上限の98%までしか予算として使いません。残予算から最大出力token数も制限します。</span></div>
         <div><ShieldCheck /><span><strong>本文取得</strong>対象URLはVercelサーバーから通常fetchします。OpenAI Web Searchは使わないため、本文取得のOpenAI料金は $0.000000 です。</span></div>
       </div>
-      <div className="p5-02-pricing-note">料金計算基準: {AI_PRICING_REFERENCE_DATE}。実行後はResponses APIの実使用token数から入力・キャッシュ入力・出力を分けて計算します。</div>
+      <div className="p5-02-pricing-note">料金計算基準: {AI_PRICING_REFERENCE_DATE}。実行時は暗黙のPrompt Cacheを書き込まない設定にし、実行後はResponses APIのcached_tokens / cache_write_tokensを含む実使用量から計算します。</div>
     </Card>
   );
 }

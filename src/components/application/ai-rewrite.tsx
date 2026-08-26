@@ -41,6 +41,7 @@ type RewriteResult = {
   usage: {
     inputTokens: number;
     cachedInputTokens: number;
+    cacheWriteInputTokens: number;
     outputTokens: number;
     totalTokens: number;
   };
@@ -55,6 +56,7 @@ type RewriteResult = {
     webSearchUsd: number;
     inputUsd: number;
     cachedInputUsd: number;
+    cacheWriteUsd: number;
     outputUsd: number;
     totalUsd: number;
     limitUsd: number;
@@ -179,7 +181,7 @@ export function AiRewriteWorkspace() {
         <div className="p5-02-rewrite-result">
           <div className="p5-02-cost-summary">
             <div><span>本文取得</span><strong>{usd(result.cost.pageFetchUsd)}</strong><small>OpenAI Web Search 0回</small></div>
-            <div><span>AI入力</span><strong>{usd(result.cost.inputUsd + result.cost.cachedInputUsd)}</strong><small>{result.usage.inputTokens.toLocaleString()} tokens</small></div>
+            <div><span>AI入力</span><strong>{usd(result.cost.inputUsd + result.cost.cachedInputUsd + result.cost.cacheWriteUsd)}</strong><small>{result.usage.inputTokens.toLocaleString()} tokens / write {result.usage.cacheWriteInputTokens.toLocaleString()}</small></div>
             <div><span>AI出力</span><strong>{usd(result.cost.outputUsd)}</strong><small>{result.usage.outputTokens.toLocaleString()} tokens</small></div>
             <div className={result.cost.exceededLimit ? 'is-danger' : 'is-total'}><span>今回のAIコスト</span><strong>{usd(result.cost.totalUsd)}</strong><small>上限 {usd(result.cost.limitUsd)}</small></div>
           </div>
