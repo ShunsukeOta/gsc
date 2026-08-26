@@ -15,6 +15,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, EmptyState, IconButton } from '@/components/ui';
 import type { Opportunity, SignalRow } from '@/lib/analysis-types';
+import { AiRewriteDrawer } from './ai-rewrite-drawer';
 import { useGscWorkspace } from './gsc-context';
 
 const STORAGE_KEY = 'gsc-analyzer-action-log-v1';
@@ -198,6 +199,7 @@ export function OpportunityActionDrawer({ opportunity, onClose }: { opportunity:
             </div>
           </section>
 
+          <AiRewriteDrawer opportunityId={opportunity.id} />
           <RelatedList rows={related} title={pageRow ? 'このページの流入クエリ' : 'このクエリで表示されたページ'} />
           <ActionTracker id={`opportunity:${opportunity.id}`} />
           <AiBrief opportunityId={opportunity.id} />
