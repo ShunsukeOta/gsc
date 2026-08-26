@@ -179,7 +179,7 @@ export function DonutChart({ items }: { items: Array<{ label: string; value: num
   const onPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.pointerType !== 'mouse') return;
     const index = indexFromPointer(event.currentTarget, event.clientX, event.clientY);
-    setActiveIndex(index >= 0 ? index : null);
+    setActiveIndex(index != null && index >= 0 ? index : null);
   };
 
   const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -189,7 +189,7 @@ export function DonutChart({ items }: { items: Array<{ label: string; value: num
     const { clientX, clientY } = event;
     timerRef.current = setTimeout(() => {
       const index = indexFromPointer(element, clientX, clientY);
-      setActiveIndex(index >= 0 ? index : null);
+      setActiveIndex(index != null && index >= 0 ? index : null);
     }, LONG_PRESS_MS);
   };
 
