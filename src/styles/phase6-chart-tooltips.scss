@@ -1,0 +1,237 @@
+/* Phase 06 — interactive chart details -------------------------------- */
+
+.p6-interactive-chart {
+  position: relative;
+  min-width: 0;
+  outline: none;
+  touch-action: pan-y;
+}
+
+.p6-interactive-chart:focus-visible {
+  border-radius: var(--radius-xs);
+  box-shadow: 0 0 0 2px var(--c-primary-100);
+}
+
+.p6-interactive-chart--spark {
+  width: 74px;
+  height: 24px;
+}
+
+.p6-interactive-chart--spark .p2-sparkline {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.p6-interactive-chart--bars {
+  width: 100%;
+  height: 100%;
+}
+
+.p6-interactive-chart--bars > .p2-micro-bars {
+  width: 100%;
+  height: 100%;
+}
+
+.p2-micro-bars > span,
+.p2-sparkline polyline {
+  transition: opacity var(--transition), filter var(--transition), stroke-width var(--transition);
+}
+
+.p2-micro-bars > span.is-active {
+  opacity: 1;
+  filter: saturate(1.35) brightness(.9);
+}
+
+.p6-chart-guide {
+  stroke: var(--c-primary-300);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.p6-chart-point {
+  fill: var(--c-white);
+  stroke: var(--c-primary-600);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.p2-sparkline.is-negative .p6-chart-point { stroke: var(--c-danger-700); }
+
+.p6-chart-tooltip,
+.p6-donut-tooltip,
+.p6-bar-tooltip {
+  position: absolute;
+  z-index: 40;
+  min-width: 152px;
+  max-width: 230px;
+  padding: 8px 9px;
+  border: 1px solid var(--c-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--c-neutral-950);
+  color: var(--c-white);
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.p6-chart-tooltip {
+  bottom: calc(100% + 7px);
+  transform: translateX(-50%);
+}
+
+.p6-interactive-chart--spark .p6-chart-tooltip {
+  top: calc(100% + 5px);
+  bottom: auto;
+}
+
+.p6-chart-tooltip::after,
+.p6-donut-tooltip::after,
+.p6-bar-tooltip::after {
+  content: '';
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  background: var(--c-neutral-950);
+  transform: rotate(45deg);
+}
+
+.p6-chart-tooltip::after {
+  left: 50%;
+  bottom: -4px;
+  margin-left: -3px;
+  border-right: 1px solid var(--c-border-strong);
+  border-bottom: 1px solid var(--c-border-strong);
+}
+
+.p6-interactive-chart--spark .p6-chart-tooltip::after {
+  top: -4px;
+  bottom: auto;
+  border: 0;
+  border-left: 1px solid var(--c-border-strong);
+  border-top: 1px solid var(--c-border-strong);
+}
+
+.p6-chart-tooltip > strong,
+.p6-donut-tooltip > strong,
+.p6-bar-tooltip > strong {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--c-white);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.p6-chart-tooltip > div,
+.p6-donut-tooltip > div,
+.p6-bar-tooltip > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 3px;
+}
+
+.p6-chart-tooltip span,
+.p6-donut-tooltip span,
+.p6-bar-tooltip span {
+  color: var(--c-neutral-300);
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.p6-chart-tooltip b,
+.p6-donut-tooltip b,
+.p6-bar-tooltip b {
+  color: var(--c-white);
+  font-size: 10px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.p6-chart-tooltip small {
+  display: block;
+  margin-top: 6px;
+  padding-top: 5px;
+  border-top: 1px solid var(--c-neutral-700);
+  color: var(--c-neutral-300);
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.p6-donut-interactive {
+  position: relative;
+  width: 112px;
+}
+
+.p6-donut-interactive .p2-donut {
+  outline: none;
+  touch-action: pan-y;
+  cursor: crosshair;
+}
+
+.p6-donut-interactive .p2-donut:focus-visible {
+  box-shadow: 0 0 0 3px var(--c-primary-100);
+}
+
+.p6-donut-tooltip {
+  left: 50%;
+  bottom: calc(100% + 7px);
+  transform: translateX(-50%);
+}
+
+.p6-donut-tooltip::after,
+.p6-bar-tooltip::after {
+  left: 50%;
+  bottom: -4px;
+  margin-left: -3px;
+  border-right: 1px solid var(--c-border-strong);
+  border-bottom: 1px solid var(--c-border-strong);
+}
+
+.p2-donut-legend__row {
+  border-radius: var(--radius-xs);
+  outline: none;
+}
+
+.p2-donut-legend__row.is-active,
+.p2-donut-legend__row:focus-visible {
+  background: var(--c-primary-50);
+  color: var(--c-primary-700);
+}
+
+.p6-bar-row {
+  position: relative;
+  border-radius: var(--radius-xs);
+  outline: none;
+  touch-action: pan-y;
+}
+
+.p6-bar-row.is-active,
+.p6-bar-row:focus-visible {
+  background: var(--c-primary-50);
+}
+
+.p6-bar-row.is-active .p2-bars__track > span {
+  filter: saturate(1.35) brightness(.9);
+}
+
+.p6-bar-tooltip {
+  left: 50%;
+  bottom: calc(100% + 5px);
+  transform: translateX(-50%);
+}
+
+@media (max-width: 720px) {
+  .p6-chart-tooltip,
+  .p6-donut-tooltip,
+  .p6-bar-tooltip {
+    min-width: 140px;
+    max-width: min(210px, 78vw);
+  }
+
+  .p6-interactive-chart--spark .p6-chart-tooltip {
+    left: 50% !important;
+  }
+}
