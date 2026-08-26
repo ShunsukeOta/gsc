@@ -50,6 +50,47 @@ export type DashboardInsight = { title: string; value: string; meta: string; act
 export type RelatedPerformance = { label: string; clicks: number; impressions: number; ctr: number; position: number };
 export type GscRelations = { queryToPages: Record<string, RelatedPerformance[]>; pageToQueries: Record<string, RelatedPerformance[]> };
 
+export type QueryMovementKind = 'new' | 'lost' | 'top10-entry' | 'top10-exit';
+export type QueryMovementPeriodMetrics = {
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  position: number;
+};
+export type QueryMovementRow = {
+  id: string;
+  kind: QueryMovementKind;
+  query: string;
+  current: QueryMovementPeriodMetrics | null;
+  previous: QueryMovementPeriodMetrics | null;
+  clickDelta: number | null;
+  impressionDelta: number | null;
+  positionDelta: number | null;
+  impactImpressions: number;
+  score: number;
+  priority: Priority;
+  confidence: 'high' | 'caution';
+  action: string;
+};
+export type QueryMovementSummary = {
+  rows: QueryMovementRow[];
+  counts: {
+    new: number;
+    lost: number;
+    top10Entries: number;
+    top10Exits: number;
+  };
+  rowCapPerType: number;
+  capped: boolean;
+  reliability: {
+    level: 'high' | 'caution';
+    currentRowsTruncated: boolean;
+    previousRowsTruncated: boolean;
+    partialData: boolean;
+    note: string;
+  };
+};
+
 export type UrlVariantGroup = {
   canonicalUrl: string;
   variants: string[];
@@ -119,6 +160,7 @@ export type GscAnalysisBundle = {
   dailyTasks: DailyTask[];
   insights: DashboardInsight[];
   relations?: GscRelations;
+  queryMovements?: QueryMovementSummary;
   urlNormalization?: UrlNormalizationSummary;
   anomalies?: ProductionAnomaly[];
   dataQuality?: DataQualitySummary;

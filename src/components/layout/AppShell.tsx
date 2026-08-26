@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   Activity,
   AlertTriangle,
+  ArrowRightLeft,
   BarChart3,
   FileText,
   Gauge,
@@ -26,6 +27,7 @@ const primaryNav = [
 
 const analysisNav = [
   { href: '/anomalies', label: '異常検知', icon: AlertTriangle },
+  { href: '/movements', label: 'クエリ変動', icon: ArrowRightLeft },
   { href: '/growth', label: '急上昇', icon: TrendingUp },
   { href: '/declines', label: '急落', icon: TrendingDown },
   { href: '/ctr', label: 'CTR改善', icon: Activity },
@@ -55,7 +57,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const current = allNav.find(
     (item) => pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(`${item.href}/`)),
   );
-  const mobileNav = [primaryNav[0], primaryNav[1], primaryNav[2], primaryNav[3], analysisNav[5]];
+  const mobileNav = [primaryNav[0], primaryNav[1], primaryNav[2], primaryNav[3], analysisNav[6]];
 
   return (
     <div className="app-shell">
@@ -81,9 +83,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="app-sidebar__status">
             <div className="app-sidebar__status-title">
               <span className="app-sidebar__status-dot" />
-              Phase 5 Production UX
+              Phase 6 Query Movement
             </div>
-            <div className="app-sidebar__status-text">実データのみ・機能導線・Web/画像/動画</div>
+            <div className="app-sidebar__status-text">New / Lost・TOP10出入り・Web/画像/動画</div>
           </div>
         </div>
       </aside>

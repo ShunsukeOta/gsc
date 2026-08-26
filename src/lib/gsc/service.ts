@@ -3,6 +3,7 @@ import { buildDateRange } from './dates';
 import { DEFAULT_THRESHOLDS, getGscRuntimeConfig } from './env';
 import { runAnalysisEngine } from './analysis';
 import { buildGscRelations } from './relations';
+import { buildQueryMovementSummary } from './query-movements';
 import { buildDataQualitySummary, buildProductionAnomalies } from './production-intelligence';
 import { aggregateGscPageRows, buildUrlNormalizationSummary } from './url-normalization';
 import type { AnalysisThresholds, GscAnalysisBundle, GscDevice, GscFilter, GscSearchRequest, GscSearchType } from './types';
@@ -34,7 +35,7 @@ function requestBase(startDate: string, endDate: string, device: GscDevice, sear
 }
 
 const cacheKey = (siteUrl: string, days: number, device: GscDevice, searchType: GscSearchType, thresholds: AnalysisThresholds) =>
-  JSON.stringify(['v5', siteUrl, days, device, searchType, thresholds.growthPercent, thresholds.declinePercent, thresholds.minImpressions, thresholds.opportunityMaxPosition]);
+  JSON.stringify(['v6', siteUrl, days, device, searchType, thresholds.growthPercent, thresholds.declinePercent, thresholds.minImpressions, thresholds.opportunityMaxPosition]);
 
 export async function getGscAnalysis(accessToken: string, siteUrl: string, options: AnalysisOptions = {}) {
   const runtime = getGscRuntimeConfig();
@@ -95,7 +96,18 @@ export async function getGscAnalysis(accessToken: string, siteUrl: string, optio
     cache: 'miss',
   };
 
-  const baseBundle: GscAnalysisBundle = { ...core, diagnostics, relations: buildGscRelations(normalizedQueryPages.rows), urlNormalization };
+  const queryMovements = buildQueryMovementSummary(currentQueries.rows, previousQueries.rows, {
+    currentRowsTruncated: currentQueries.truncated,
+    previousRowsTruncated: previousQueries.truncated,
+    partialData: Boolean(daily.metadata?.first_incomplete_date),
+  });
+  const baseBundle: GscAnalysisBundle = {
+    ...core,
+    diagnostics,
+    relations: buildGscRelations(normalizedQueryPages.rows),
+    queryMovements,
+    urlNormalization,
+  };
   const anomalies = buildProductionAnomalies(baseBundle);
   const dataQuality = buildDataQualitySummary({ bundle: baseBundle, queryRowsTruncated: currentQueries.truncated, pageRowsTruncated: currentPages.truncated, queryPageRowsTruncated: queryPages.truncated, normalization: urlNormalization });
   const bundle: GscAnalysisBundle = { ...baseBundle, anomalies, dataQuality };
