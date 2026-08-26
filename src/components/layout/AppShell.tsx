@@ -6,11 +6,8 @@ import {
   Activity,
   AlertTriangle,
   BarChart3,
-  Bell,
   FileText,
   Gauge,
-  HelpCircle,
-  Layers3,
   Search,
   Settings,
   Sparkles,
@@ -18,6 +15,7 @@ import {
   TrendingUp,
   Unlink2,
 } from 'lucide-react';
+import { HeaderActions } from './HeaderActions';
 
 const primaryNav = [
   { href: '/dashboard', label: 'ダッシュボード', icon: Gauge },
@@ -36,7 +34,6 @@ const analysisNav = [
 ];
 
 const systemNav = [
-  { href: '/design-system', label: 'UIシステム', icon: Layers3 },
   { href: '/settings', label: '設定', icon: Settings },
 ];
 
@@ -84,9 +81,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="app-sidebar__status">
             <div className="app-sidebar__status-title">
               <span className="app-sidebar__status-dot" />
-              Phase 4 Production
+              Phase 5 Production UX
             </div>
-            <div className="app-sidebar__status-text">URL正規化・異常検知・品質診断</div>
+            <div className="app-sidebar__status-text">実データのみ・機能導線・Web/画像/動画</div>
           </div>
         </div>
       </aside>
@@ -99,19 +96,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="app-header__crumb-current">{current?.label ?? '分析'}</span>
           </div>
         </div>
-
-        <div className="app-header__right">
-          <div className="app-header__search" role="search">
-            <Search aria-hidden="true" />
-            <span>クエリ・ページを検索...</span>
-          </div>
-          <button className="ui-icon-button" type="button" aria-label="通知"><Bell size={14} /></button>
-          <button className="ui-icon-button" type="button" aria-label="ヘルプ"><HelpCircle size={14} /></button>
-          <div className="app-user">
-            <span className="app-user__avatar">SO</span>
-            <span className="app-user__name">Shunsuke Ota</span>
-          </div>
-        </div>
+        <div className="app-header__right"><HeaderActions /></div>
       </header>
 
       <main className="app-main"><div className="app-content">{children}</div></main>
