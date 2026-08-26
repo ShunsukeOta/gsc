@@ -1,8 +1,9 @@
-import type { Opportunity, PerformanceRow, Priority, SignalRow } from '@/lib/application-data';
+import type { Opportunity, PerformanceRow, Priority, SignalRow } from '@/lib/analysis-types';
 
 export type GscDimension = 'date' | 'query' | 'page' | 'device' | 'country' | 'searchAppearance';
 export type GscDevice = 'all' | 'MOBILE' | 'DESKTOP' | 'TABLET';
 export type GscDataState = 'final' | 'all';
+export type GscSearchType = 'web' | 'image' | 'video';
 
 export type GscProperty = { siteUrl: string; permissionLevel: string };
 export type GscRow = { keys?: string[]; clicks: number; impressions: number; ctr: number; position: number };
@@ -20,7 +21,7 @@ export type GscSearchRequest = {
   startDate: string;
   endDate: string;
   dimensions?: GscDimension[];
-  type?: 'web' | 'image' | 'video' | 'news' | 'discover' | 'googleNews';
+  type?: GscSearchType | 'news' | 'discover' | 'googleNews';
   dimensionFilterGroups?: Array<{ groupType: 'and'; filters: GscFilter[] }>;
   aggregationType?: 'auto' | 'byPage' | 'byProperty';
   rowLimit?: number;
@@ -99,6 +100,7 @@ export type DataQualitySummary = {
 export type GscAnalysisBundle = {
   source: 'gsc';
   siteUrl: string;
+  searchType: GscSearchType;
   generatedAt: string;
   range: DateRange;
   partialDataFrom?: string;
