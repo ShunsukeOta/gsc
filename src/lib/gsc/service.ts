@@ -44,9 +44,7 @@ export async function getGscAnalysis(accessToken: string, siteUrl: string, optio
   const thresholds: AnalysisThresholds = { ...DEFAULT_THRESHOLDS, ...options.thresholds };
   const key = cacheKey(siteUrl, range.days, device, searchType, thresholds);
   const cached = analysisCache.get(key);
-  if (!options.force && cached && cached.expiresAt > Date.now()) {
-    return { ...cached.value, diagnostics: { ...cached.value.diagnostics, cache: 'hit' as const } };
-  }
+  if (!options.force && cached && cached.expiresAt > Date.now()) return { ...cached.value, diagnostics: { ...cached.value.diagnostics, cache: 'hit' as const } };
 
   const currentBase = requestBase(range.startDate, range.endDate, device, searchType);
   const previousBase = requestBase(range.previousStartDate, range.previousEndDate, device, searchType);
@@ -63,8 +61,6 @@ export async function getGscAnalysis(accessToken: string, siteUrl: string, optio
     querySearchAnalytics(accessToken, siteUrl, { ...currentBase, dimensions: ['date'], aggregationType: 'auto', rowLimit: Math.max(100, range.days + 5) }),
   ]);
 
-  // #fragment は同一HTTPリソース内の位置を示すため、ページ分析では同一URLへ統合します。
-  // Query stringは別コンテンツを表す可能性があるため保持します。
   const normalizedCurrentPages = aggregateGscPageRows(currentPages.rows, 0);
   const normalizedPreviousPages = aggregateGscPageRows(previousPages.rows, 0);
   const normalizedQueryPages = aggregateGscPageRows(queryPages.rows, 1);
@@ -72,6 +68,7 @@ export async function getGscAnalysis(accessToken: string, siteUrl: string, optio
 
   const core = runAnalysisEngine({
     siteUrl,
+    searchType,
     range,
     thresholds,
     currentTotal: currentTotal.rows?.[0],
@@ -98,32 +95,17 @@ export async function getGscAnalysis(accessToken: string, siteUrl: string, optio
     cache: 'miss',
   };
 
-  const baseBundle: GscAnalysisBundle = {
-    ...core,
-    searchType,
-    diagnostics,
-    relations: buildGscRelations(normalizedQueryPages.rows),
-    urlNormalization,
-  };
+  const baseBundle: GscAnalysisBundle = { ...core, diagnostics, relations: buildGscRelations(normalizedQueryPages.rows), urlNormalization };
   const anomalies = buildProductionAnomalies(baseBundle);
-  const dataQuality = buildDataQualitySummary({
-    bundle: baseBundle,
-    queryRowsTruncated: currentQueries.truncated,
-    pageRowsTruncated: currentPages.truncated,
-    queryPageRowsTruncated: queryPages.truncated,
-    normalization: urlNormalization,
-  });
+  const dataQuality = buildDataQualitySummary({ bundle: baseBundle, queryRowsTruncated: currentQueries.truncated, pageRowsTruncated: currentPages.truncated, queryPageRowsTruncated: queryPages.truncated, normalization: urlNormalization });
   const bundle: GscAnalysisBundle = { ...baseBundle, anomalies, dataQuality };
 
   if (runtime.cacheTtlMs > 0) {
     analysisCache.set(key, { value: bundle, expiresAt: Date.now() + runtime.cacheTtlMs });
     if (analysisCache.size > 24) {
-      for (const [entryKey, entry] of analysisCache) {
-        if (entry.expiresAt <= Date.now()) analysisCache.delete(entryKey);
-      }
+      for (const [entryKey, entry] of analysisCache) if (entry.expiresAt <= Date.now()) analysisCache.delete(entryKey);
       if (analysisCache.size > 24) analysisCache.delete(analysisCache.keys().next().value as string);
     }
   }
-
   return bundle;
 }
