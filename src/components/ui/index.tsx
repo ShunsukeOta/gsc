@@ -132,8 +132,15 @@ export function Radio({ label, name, defaultChecked = false }: { label: string; 
   );
 }
 
-export function Switch({ label, initial = false }: { label: string; initial?: boolean }) {
-  const [enabled, setEnabled] = useState(initial);
+export function Switch({ label, initial = false, checked, onChange }: { label: string; initial?: boolean; checked?: boolean; onChange?: (checked: boolean) => void }) {
+  const [internal, setInternal] = useState(initial);
+  const controlled = typeof checked === 'boolean';
+  const enabled = controlled ? checked : internal;
+  const toggle = () => {
+    const next = !enabled;
+    if (!controlled) setInternal(next);
+    onChange?.(next);
+  };
   return (
     <span className={cx('ui-switch', enabled && 'is-on')}>
       <button
@@ -141,7 +148,7 @@ export function Switch({ label, initial = false }: { label: string; initial?: bo
         className="ui-switch__track"
         aria-pressed={enabled}
         aria-label={`${label}を${enabled ? 'オフ' : 'オン'}にする`}
-        onClick={() => setEnabled((value) => !value)}
+        onClick={toggle}
       />
       <span>{label}</span>
     </span>
@@ -202,16 +209,23 @@ export function EmptyState({ title = 'データがありません', text = '条�
   );
 }
 
-export function Pagination({ current = 1, pages = 5 }: { current?: number; pages?: number }) {
+export function Pagination({ current = 1, pages = 1, onChange }: { current?: number; pages?: number; onChange?: (page: number) => void }) {
+  if (pages <= 1) return null;
+  const move = (page: number) => onChange?.(Math.max(1, Math.min(pages, page)));
+  const visiblePages = Array.from({ length: pages }, (_, index) => index + 1).filter((page) => pages <= 7 || page === 1 || page === pages || Math.abs(page - current) <= 2);
   return (
     <nav className="ui-pagination" aria-label="ページネーション">
-      <button className="ui-pagination__item" type="button" aria-label="前のページ"><ChevronLeft size={12} /></button>
-      {Array.from({ length: pages }, (_, index) => index + 1).map((page) => (
-        <button key={page} type="button" className={cx('ui-pagination__item', page === current && 'is-active')} aria-current={page === current ? 'page' : undefined}>
-          {page}
-        </button>
-      ))}
-      <button className="ui-pagination__item" type="button" aria-label="次のページ"><ChevronRight size={12} /></button>
+      <button className="ui-pagination__item" type="button" aria-label="前のページ" disabled={current <= 1} onClick={() => move(current - 1)}><ChevronLeft size={12} /></button>
+      {visiblePages.map((page, index) => {
+        const previous = visiblePages[index - 1];
+        return (
+          <span key={page} style={{ display: 'contents' }}>
+            {previous && page - previous > 1 && <span className="ui-pagination__ellipsis">…</span>}
+            <button type="button" className={cx('ui-pagination__item', page === current && 'is-active')} aria-current={page === current ? 'page' : undefined} onClick={() => move(page)}>{page}</button>
+          </span>
+        );
+      })}
+      <button className="ui-pagination__item" type="button" aria-label="次のページ" disabled={current >= pages} onClick={() => move(current + 1)}><ChevronRight size={12} /></button>
     </nav>
   );
 }

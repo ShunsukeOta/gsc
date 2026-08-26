@@ -5,11 +5,12 @@ import { runAnalysisEngine } from './analysis';
 import { buildGscRelations } from './relations';
 import { buildDataQualitySummary, buildProductionAnomalies } from './production-intelligence';
 import { aggregateGscPageRows, buildUrlNormalizationSummary } from './url-normalization';
-import type { AnalysisThresholds, GscAnalysisBundle, GscDevice, GscFilter, GscSearchRequest } from './types';
+import type { AnalysisThresholds, GscAnalysisBundle, GscDevice, GscFilter, GscSearchRequest, GscSearchType } from './types';
 
 type AnalysisOptions = {
   days?: number;
   device?: GscDevice;
+  searchType?: GscSearchType;
   thresholds?: Partial<AnalysisThresholds>;
   force?: boolean;
 };
@@ -21,33 +22,32 @@ function deviceFilters(device: GscDevice): GscFilter[] {
   return device === 'all' ? [] : [{ dimension: 'device', operator: 'equals', expression: device }];
 }
 
-function requestBase(startDate: string, endDate: string, device: GscDevice): GscSearchRequest {
+function requestBase(startDate: string, endDate: string, device: GscDevice, searchType: GscSearchType): GscSearchRequest {
   const filters = deviceFilters(device);
   return {
     startDate,
     endDate,
-    type: 'web',
+    type: searchType,
     dataState: getGscRuntimeConfig().dataState,
     ...(filters.length ? { dimensionFilterGroups: [{ groupType: 'and' as const, filters }] } : {}),
   };
 }
 
-const cacheKey = (siteUrl: string, days: number, device: GscDevice, thresholds: AnalysisThresholds) =>
-  JSON.stringify(['v4', siteUrl, days, device, thresholds.growthPercent, thresholds.declinePercent, thresholds.minImpressions, thresholds.opportunityMaxPosition]);
+const cacheKey = (siteUrl: string, days: number, device: GscDevice, searchType: GscSearchType, thresholds: AnalysisThresholds) =>
+  JSON.stringify(['v5', siteUrl, days, device, searchType, thresholds.growthPercent, thresholds.declinePercent, thresholds.minImpressions, thresholds.opportunityMaxPosition]);
 
 export async function getGscAnalysis(accessToken: string, siteUrl: string, options: AnalysisOptions = {}) {
   const runtime = getGscRuntimeConfig();
   const range = buildDateRange(options.days ?? 28);
   const device = options.device ?? 'all';
+  const searchType = options.searchType ?? 'web';
   const thresholds: AnalysisThresholds = { ...DEFAULT_THRESHOLDS, ...options.thresholds };
-  const key = cacheKey(siteUrl, range.days, device, thresholds);
+  const key = cacheKey(siteUrl, range.days, device, searchType, thresholds);
   const cached = analysisCache.get(key);
-  if (!options.force && cached && cached.expiresAt > Date.now()) {
-    return { ...cached.value, diagnostics: { ...cached.value.diagnostics, cache: 'hit' as const } };
-  }
+  if (!options.force && cached && cached.expiresAt > Date.now()) return { ...cached.value, diagnostics: { ...cached.value.diagnostics, cache: 'hit' as const } };
 
-  const currentBase = requestBase(range.startDate, range.endDate, device);
-  const previousBase = requestBase(range.previousStartDate, range.previousEndDate, device);
+  const currentBase = requestBase(range.startDate, range.endDate, device, searchType);
+  const previousBase = requestBase(range.previousStartDate, range.previousEndDate, device, searchType);
 
   const [currentTotal, previousTotal, currentQueries, previousQueries, currentPages, previousPages, queryPages, devices, daily] = await Promise.all([
     querySearchAnalytics(accessToken, siteUrl, { ...currentBase, rowLimit: 1 }),
@@ -61,9 +61,6 @@ export async function getGscAnalysis(accessToken: string, siteUrl: string, optio
     querySearchAnalytics(accessToken, siteUrl, { ...currentBase, dimensions: ['date'], aggregationType: 'auto', rowLimit: Math.max(100, range.days + 5) }),
   ]);
 
-  // Phase 4: URL fragments identify in-page client state, not a separate HTTP resource.
-  // Normalize and aggregate before any scoring/cannibalization logic so metrics are not
-  // split across `page/#section` variants. Query strings are intentionally preserved.
   const normalizedCurrentPages = aggregateGscPageRows(currentPages.rows, 0);
   const normalizedPreviousPages = aggregateGscPageRows(previousPages.rows, 0);
   const normalizedQueryPages = aggregateGscPageRows(queryPages.rows, 1);
@@ -71,6 +68,7 @@ export async function getGscAnalysis(accessToken: string, siteUrl: string, optio
 
   const core = runAnalysisEngine({
     siteUrl,
+    searchType,
     range,
     thresholds,
     currentTotal: currentTotal.rows?.[0],
@@ -97,31 +95,17 @@ export async function getGscAnalysis(accessToken: string, siteUrl: string, optio
     cache: 'miss',
   };
 
-  const baseBundle: GscAnalysisBundle = {
-    ...core,
-    diagnostics,
-    relations: buildGscRelations(normalizedQueryPages.rows),
-    urlNormalization,
-  };
+  const baseBundle: GscAnalysisBundle = { ...core, diagnostics, relations: buildGscRelations(normalizedQueryPages.rows), urlNormalization };
   const anomalies = buildProductionAnomalies(baseBundle);
-  const dataQuality = buildDataQualitySummary({
-    bundle: baseBundle,
-    queryRowsTruncated: currentQueries.truncated,
-    pageRowsTruncated: currentPages.truncated,
-    queryPageRowsTruncated: queryPages.truncated,
-    normalization: urlNormalization,
-  });
+  const dataQuality = buildDataQualitySummary({ bundle: baseBundle, queryRowsTruncated: currentQueries.truncated, pageRowsTruncated: currentPages.truncated, queryPageRowsTruncated: queryPages.truncated, normalization: urlNormalization });
   const bundle: GscAnalysisBundle = { ...baseBundle, anomalies, dataQuality };
 
   if (runtime.cacheTtlMs > 0) {
     analysisCache.set(key, { value: bundle, expiresAt: Date.now() + runtime.cacheTtlMs });
     if (analysisCache.size > 24) {
-      for (const [entryKey, entry] of analysisCache) {
-        if (entry.expiresAt <= Date.now()) analysisCache.delete(entryKey);
-      }
+      for (const [entryKey, entry] of analysisCache) if (entry.expiresAt <= Date.now()) analysisCache.delete(entryKey);
       if (analysisCache.size > 24) analysisCache.delete(analysisCache.keys().next().value as string);
     }
   }
-
   return bundle;
 }

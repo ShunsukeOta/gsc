@@ -3,7 +3,7 @@ import { GscApiError } from '@/lib/gsc/client';
 import { DEFAULT_THRESHOLDS } from '@/lib/gsc/env';
 import { getFreshGoogleSession } from '@/lib/gsc/oauth';
 import { getGscAnalysis } from '@/lib/gsc/service';
-import type { GscDevice } from '@/lib/gsc/types';
+import type { GscDevice, GscSearchType } from '@/lib/gsc/types';
 
 export const runtime = 'nodejs';
 
@@ -11,6 +11,10 @@ const numberParam = (value: string | null, fallback: number, min: number, max: n
   const number = Number(value);
   return Number.isFinite(number) ? Math.min(max, Math.max(min, number)) : fallback;
 };
+
+function searchTypeParam(value: string | null): GscSearchType {
+  return value === 'image' || value === 'video' ? value : 'web';
+}
 
 export async function GET(request: NextRequest) {
   const siteUrl = request.nextUrl.searchParams.get('site');
@@ -23,6 +27,7 @@ export async function GET(request: NextRequest) {
     const days = numberParam(request.nextUrl.searchParams.get('days'), 28, 7, 90);
     const rawDevice = request.nextUrl.searchParams.get('device');
     const device: GscDevice = rawDevice === 'MOBILE' || rawDevice === 'DESKTOP' || rawDevice === 'TABLET' ? rawDevice : 'all';
+    const searchType = searchTypeParam(request.nextUrl.searchParams.get('type'));
     const thresholds = {
       growthPercent: numberParam(request.nextUrl.searchParams.get('growth'), DEFAULT_THRESHOLDS.growthPercent, 1, 500),
       declinePercent: numberParam(request.nextUrl.searchParams.get('decline'), DEFAULT_THRESHOLDS.declinePercent, -100, -1),
@@ -33,6 +38,7 @@ export async function GET(request: NextRequest) {
     const analysis = await getGscAnalysis(session.accessToken, siteUrl, {
       days,
       device,
+      searchType,
       thresholds,
       force: request.nextUrl.searchParams.get('force') === '1',
     });
