@@ -1,6 +1,6 @@
-import { LiveGscDetailWorkspace } from '@/components/application/live-analysis-views';
+import { LivePageDetailWorkspace } from '@/components/application/page-detail-workspace';
 
 export default async function PageDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  return <LiveGscDetailWorkspace kind="page" slug={slug} />;
+  return <LivePageDetailWorkspace slug={slug} />;
 }
