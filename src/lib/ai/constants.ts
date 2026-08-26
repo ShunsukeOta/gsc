@@ -6,6 +6,7 @@ export const DEFAULT_AI_REWRITE_MODEL = 'gpt-5.6-luna';
 export const GPT_5_6_LUNA_PRICING = {
   inputPerMillion: 0.2,
   cachedInputPerMillion: 0.02,
+  cacheWritePerMillion: 0.25,
   outputPerMillion: 1.2,
 } as const;
 

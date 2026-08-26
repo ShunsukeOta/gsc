@@ -76,7 +76,10 @@ async function readLimitedText(response: Response) {
       const { done, value } = await reader.read();
       if (done) break;
       total += value.byteLength;
-      if (total > MAX_PAGE_BYTES) throw new Error('対象ページが大きすぎます。2MB以下のHTMLのみ対応しています。');
+      if (total > MAX_PAGE_BYTES) {
+        await reader.cancel();
+        throw new Error('対象ページが大きすぎます。2MB以下のHTMLのみ対応しています。');
+      }
       text += decoder.decode(value, { stream: true });
     }
     text += decoder.decode();
@@ -123,10 +126,14 @@ const ENTITY_MAP: Record<string, string> = {
   lsquo: '‘', rsquo: '’', ldquo: '“', rdquo: '”', copy: '©', reg: '®', trade: '™',
 };
 
+function codePoint(value: number, fallback: string) {
+  return Number.isFinite(value) && value >= 0 && value <= 0x10ffff ? String.fromCodePoint(value) : fallback;
+}
+
 function decodeEntities(value: string) {
   return value
-    .replace(/&#x([0-9a-f]+);/gi, (_, hex: string) => String.fromCodePoint(Number.parseInt(hex, 16)))
-    .replace(/&#(\d+);/g, (_, decimal: string) => String.fromCodePoint(Number.parseInt(decimal, 10)))
+    .replace(/&#x([0-9a-f]+);/gi, (match, hex: string) => codePoint(Number.parseInt(hex, 16), match))
+    .replace(/&#(\d+);/g, (match, decimal: string) => codePoint(Number.parseInt(decimal, 10), match))
     .replace(/&([a-z]+);/gi, (match, name: string) => ENTITY_MAP[name.toLowerCase()] ?? match);
 }
 
@@ -170,12 +177,27 @@ function collectHeadings(html: string) {
   return rows;
 }
 
+function pickContentRoot(html: string) {
+  const main = html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)?.[1];
+  if (main && stripTags(main).length >= 300) return main;
+
+  const articles: string[] = [];
+  const articleRegex = /<article\b[^>]*>([\s\S]*?)<\/article>/gi;
+  let articleMatch: RegExpExecArray | null;
+  while ((articleMatch = articleRegex.exec(html))) articles.push(articleMatch[1]);
+  const article = articles.sort((a, b) => stripTags(b).length - stripTags(a).length)[0];
+  if (article && stripTags(article).length >= 300) return article;
+
+  return html.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i)?.[1] ?? html;
+}
+
 function visibleText(html: string) {
-  const cleaned = html
+  const root = pickContentRoot(html);
+  const cleaned = root
     .replace(/<!--[\s\S]*?-->/g, ' ')
-    .replace(/<(script|style|noscript|svg|iframe|canvas|template|form)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<(script|style|noscript|svg|iframe|canvas|template|form|nav|footer|aside)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ')
     .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/(p|div|section|article|main|aside|li|h[1-6]|tr|blockquote)>/gi, '\n')
+    .replace(/<\/(p|div|section|article|main|li|h[1-6]|tr|blockquote)>/gi, '\n')
     .replace(/<li\b[^>]*>/gi, '・')
     .replace(/<[^>]+>/g, ' ');
   const decoded = decodeEntities(cleaned).replace(/\r/g, '');
